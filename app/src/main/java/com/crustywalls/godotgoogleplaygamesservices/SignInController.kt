@@ -11,8 +11,8 @@ import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 
 class SignInController(
-    private var godot: Godot,
-    private var root: GodotGooglePlayGamesServices
+    private val godot: Godot,
+    private val root: GodotGooglePlayGamesServices
 ) {
     private val activity = godot.activity as Activity;
     val signInOptions = GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN;
