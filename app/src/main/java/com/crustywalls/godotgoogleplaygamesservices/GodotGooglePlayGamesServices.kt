@@ -8,6 +8,7 @@ import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.games.Games
+import com.google.android.gms.games.leaderboard.LeaderboardScoreBuffer
 import org.godotengine.godot.Godot
 import  org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
@@ -31,6 +32,7 @@ class GodotGooglePlayGamesServices(godot: Godot) : GodotPlugin(godot) {
         val SIGNAL_LEADERBOARD_SCORE_SUBMITTED = SignalInfo("leaderboard_score_submitted");
         val SIGNAL_LEADERBOARD_SCORE_SUBMIT_FAILED = SignalInfo("leaderboard_score_submit_failed");
         val SIGNAL_LEADERBOARD_SCORE_RETRIEVED = SignalInfo("leaderboard_score_retrieved", Int::class.javaObjectType);
+        val SIGNAL_LEADERBOARD_TOPSCORES_RERIEVED = SignalInfo("leaderboard_topscores_retrieved", String::class.java);
     }
 
     override fun onMainActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -51,7 +53,8 @@ class GodotGooglePlayGamesServices(godot: Godot) : GodotPlugin(godot) {
             "showLeaderboard",
             "showAllLeaderboards",
             "submitLeaderboardScore",
-            "getLeaderboardCurrentPlayerScore"
+            "getLeaderboardCurrentPlayerScore",
+            "getLeaderboardTopScores"
         );
     }
 
@@ -63,7 +66,8 @@ class GodotGooglePlayGamesServices(godot: Godot) : GodotPlugin(godot) {
             SIGNAL_SIGNOUT_FAILED,
             SIGNAL_LEADERBOARD_SCORE_SUBMITTED,
             SIGNAL_LEADERBOARD_SCORE_SUBMIT_FAILED,
-            SIGNAL_LEADERBOARD_SCORE_RETRIEVED
+            SIGNAL_LEADERBOARD_SCORE_RETRIEVED,
+            SIGNAL_LEADERBOARD_TOPSCORES_RERIEVED
         );
     }
 
@@ -132,6 +136,12 @@ class GodotGooglePlayGamesServices(godot: Godot) : GodotPlugin(godot) {
         }
     }
 
+    fun getLeaderboardTopScores(maxResults:Int) {
+        runOnUiThread {
+            leaderboardController.getTopScores(maxResults);
+        }
+    }
+
     fun onSignInSuccess() {
         if (isEnablePlayGamesPopup)
             enablePlayGamesPopups();
@@ -161,5 +171,9 @@ class GodotGooglePlayGamesServices(godot: Godot) : GodotPlugin(godot) {
 
     fun onLeaderboardScoreRetrieved(score:Int) {
         emitSignal(SIGNAL_LEADERBOARD_SCORE_RETRIEVED.name, score);
+    }
+
+    fun onLeaderboardTopScoresRetrieved(topScoresJson:String) {
+        emitSignal(SIGNAL_LEADERBOARD_TOPSCORES_RERIEVED.name, topScoresJson);
     }
 }

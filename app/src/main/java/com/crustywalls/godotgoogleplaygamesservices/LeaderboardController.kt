@@ -7,6 +7,7 @@ import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.games.Games
 import com.google.android.gms.games.leaderboard.LeaderboardVariant
+import com.google.gson.Gson
 import org.godotengine.godot.Godot
 
 class LeaderboardController(
@@ -14,6 +15,12 @@ class LeaderboardController(
     private val root: GodotGooglePlayGamesServices,
     private val signInController: SignInController,
 ) {
+    data class TopScore(
+        val Name: String,
+        val Score: Long,
+        val Rank: Long
+    )
+
     private val activity = godot.activity as Activity;
     private val leaderboardID = godot.getString(R.string.leaderboard_id);
 
@@ -78,6 +85,30 @@ class LeaderboardController(
                 LeaderboardVariant.COLLECTION_PUBLIC
             )
                 .addOnSuccessListener { result -> root.onLeaderboardScoreRetrieved(result.get()?.rawScore!!.toInt()) };
+        }
+    }
+
+    fun getTopScores(maxResults: Int) {
+        val googleSignInClient = GoogleSignIn.getLastSignedInAccount(activity);
+
+        if (signInController.isConnected().first && googleSignInClient != null) {
+            val leaderboardsClient = Games.getLeaderboardsClient(activity, googleSignInClient);
+
+            leaderboardsClient.loadTopScores(
+                leaderboardID,
+                LeaderboardVariant.TIME_SPAN_ALL_TIME,
+                LeaderboardVariant.COLLECTION_PUBLIC,
+                maxResults,
+                false
+            ).addOnSuccessListener { result ->
+                var topScores:MutableList<TopScore> = ArrayList();
+
+                result.get()?.scores?.forEach { score ->
+                    topScores.add(TopScore(score.scoreHolderDisplayName, score.rawScore, score.rank));
+                }
+
+                root.onLeaderboardTopScoresRetrieved(Gson().toJson(topScores))
+            }
         }
     }
 }
